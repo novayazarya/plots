@@ -1,0 +1,1120 @@
+---
+title: Базовые стратегии торговли опционами
+subtitle: (примеры графиков)
+fontsize: 10pt
+meta: 
+  author: "Попов М. Н."
+  date: "`r format(Sys.Date(), format = '%d.%m.%Y')`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+  ____
+  <br /><br />
+  
+```{r setup, include=FALSE}
+options(width = 70, scipen = 16, digits = 3) 
+# опции чанков по умолчанию
+knitr::opts_chunk$set(tidy = FALSE, # сохранять форматирование кода
+               fig.width = 10, # ширина рисунков по умолчанию
+               fig.height = 8)  # высота рисунков по умолчанию
+```
+
+```{r operation, echo=FALSE}
+library(ggplot2)
+library(grid)
+
+theme_set(theme_void())
+
+family <- 'Times'
+
+# тема с гридлайном на сером фоне (стандартный бэкграунд)
+th <- theme(panel.background = element_rect(fill = "grey90",
+                                            colour = "grey90",
+                                            size = 0.25,
+                                            linetype = "solid"),
+            panel.grid.major = element_line(size = 0.25,
+                                            linetype = "solid",
+                                            colour = "white"), 
+            panel.grid.minor = element_line(size = 0.25,
+                                            linetype = "solid",
+                                            colour = "white")
+)
+
+# выравнивание заголовка посередине
+plot.title <- element_text(hjust = 0.5, 
+                            family = family, 
+                            size = 18, 
+                            face = "bold")
+tick_sz <- 1.0
+total_ticks <- 20
+
+arrow_line <- arrow(angle = 22, ends = "both", type = "closed", 
+                    length = unit(0.25, "cm"))
+
+arrow_axis <- arrow(angle = 20, type = "closed", 
+                    length = unit(0.2, "cm"))
+
+m <- function (x) ifelse(x < 0, "-", "")
+
+title <- "Short Butterfly"
+
+# Исходные данные --------------------------------
+x <- c(10, 30, 40, 50, 70)
+y <- c(40, 40, -80, 40, 40)
+
+tx <- c(95000, 97500, 100000)
+ty <- c(70, 0, -2430)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(d$y) * 1.75
+axis_begin_y <- min(d$y) * 1.25
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, 
+                 y = -8, label = "Stock Price\n at Expiration", 
+                 size = 5, family = family)
+
+text_y <- annotate("text", x = -5, 
+                   y = axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", 
+                   size = 5, family = family)
+
+tick_frame_y <- data.frame(ticks = c(max(d$y), 0, min(d$y)), zero = 0)
+
+tick_frame_x <- data.frame(ticks = d$x[2:4], zero=0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, 
+                                    length.out = total_ticks),
+                        zero = 0)
+
+p <- ggplot(d, aes(x, y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend = tail(lab_frame$lab_y, 1)),
+               size = 0.15, arrow = arrow_axis) + text_y +
+
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.15, linetype = 1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks != 0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.5) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label = format(tx, 
+                                           scientific = FALSE)), 
+            family = family, vjust= -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) + 
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.1__ Short Butterfly состоит из опционов с тремя разными ценами исполнения, <br /> но одинаковым сроком истечения контрактов.[^1]</center> <br />
+  
+[^1]:  http://www.option.ru/glossary/strategy/short-butterfly
+  
+```{r echo=FALSE}
+x <- c(10, 30, 40, 50, 70)
+y <- c(40, 40, -80, 40, 40)
+y <- -y
+
+tx <- c(95000, 97500, 100000)
+ty <- c(1830, 0, -670)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(d$y) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, 
+                 y = -8, label = "Stock Price\n at Expiration", 
+                 size = 5, family = family)
+
+text_y <- annotate("text", x = -5, 
+                   y = axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", 
+                   size = 5, family = family)
+
+title <- "Long Butterfly"
+
+tick_frame_y <- 
+  data.frame(ticks = c(max(d$y), 0, min(d$y)), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[2:4], zero=0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, 
+                                    length.out = total_ticks),
+                        zero = 0)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend = tail(lab_frame$lab_y, 1)),
+               size = 0.1, 
+               arrow = arrow_axis) + text_y +
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype=1, 
+               arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks != 0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label=paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust=1.4) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label=format(tx, scientific = FALSE)), 
+            family = family, vjust = -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) + 
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.2__ Long Butterfly состоит из опционов с тремя разными ценами исполнения, <br /> но одинаковым сроком истечения контрактов.[^2]</center> <br />
+
+[^2]: http://www.option.ru/glossary/strategy/long-butterfly
+
+```{r echo=FALSE}
+x <- c(10, 25, 45, 70)
+y <- c(-10, 10, 18, 18)
+
+tx <- c(92500, 102500)
+ty <- c(0, 10350, 20330)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(d$y) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Short Strangle + UA"
+
+tick_frame_y <- 
+  data.frame(ticks = c(0, d$y[c(2, 3)]), zero = 0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[c(2, 3)], zero = 0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -3, label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x = -5, y=axis_end_y - axis_end_y * 0.02, label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + text_y +
+  
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype = 1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 0.5, yend = zero + tick_sz * 0.5)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data = tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data = tick_frame_x, aes(x = ticks, y = zero, 
+                                   label = format(tx, scientific = FALSE)), 
+            family = family, vjust = 2.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(
+  plot.title = element_text(hjust = 0.5, 
+                            family = family, 
+                            size = 18, 
+                            face = "bold"))
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.3__ Short Strangle + UA.</center> <br />
+  
+```{r echo=FALSE}
+x <- c(10, 30, 50, 70)
+y <- c(60, -40, -40, 60)
+
+tx <- c(95000, 100000)
+ty <- c(0, -18120)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Long Strangle"
+
+tick_frame_y <- 
+  data.frame(ticks = c(0, min(d$y)), zero = 0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[c(2,3)], zero = 0)
+
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x= -5, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + 
+  text_y +
+  
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype=1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label=paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label=format(tx, scientific = FALSE)), 
+            family = family, vjust = -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.4__ Long Strangle cтратегия заключается в покупке опционов колл и пут с одним сроком истечения контрактов, но разными ценами исполнения.[^4]</center> <br />
+
+[^4]: http://www.option.ru/glossary/strategy/long-strangle
+
+```{r echo=FALSE}
+x <- c(10, 30, 50, 70)
+y <- c(-60, 40, 40, -60)
+
+tx <- c(95000, 100000)
+ty <- c(17590, 0)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Short Strangle"
+
+tick_frame_y <- 
+  data.frame(ticks = c(max(d$y), 0), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[c(2,3)], zero=0)
+
+total_ticks <- 20
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+tick_sz <- 1.0
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x = -5, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + text_y +
+
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype = 1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label = format(tx, 
+                                                  scientific = FALSE)), 
+            family = family, vjust= 2.2) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.5__ Short Strangle стратегия заключается в продаже опционов колл и пут с одним сроком истечения контрактов, но разными ценами исполнения.[^5]</center> <br />
+  
+[^5]: http://www.option.ru/glossary/strategy/short-strangle
+  
+```{r echo=FALSE}
+x <- c(10, 40, 70)
+y <- c(-40, 70, -40)
+
+tx <- c(97500)
+ty <- c(19970, 0)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Short Straddle"
+
+tick_frame_y <- 
+  data.frame(ticks = c(max(d$y), 0), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[2], zero=0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x = -5, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + 
+  text_y +
+  
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype=1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x=zero, y=ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust=1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label = format(tx, scientific = FALSE)), 
+            family = family, vjust = -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+ 
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+  
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.6__ Short Straddle стратегия заключается в продаже опционов пут и колл с одинаковой ценой исполнения и датой истечения контрактов.[^6]</center> <br />
+  
+[^6]: http://www.option.ru/glossary/strategy/short-straddle
+
+```{r echo=FALSE}
+x <- c(10, 40, 70)
+y <- c(80, -40, 80)
+
+tx <- c(97500)
+ty <- c(0, -20520)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Long Straddle"
+
+tick_frame_y <- 
+  data.frame(ticks = c(0, min(d$y)), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[2], zero=0)
+
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x = -5, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x, y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+                           size = 0.1, arrow = arrow_axis) + 
+                           text_y +
+
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype=1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+                                   family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                  label=format(tx, scientific = FALSE)), 
+                                  family = family, vjust = -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.7__ Long Straddle стратегия заключается в покупке опционов пут и колл с одинаковой ценой исполнения и датой истечения контрактов.[^7]</center> <br />
+
+[^7]: http://www.option.ru/glossary/strategy/long-straddle
+
+```{r echo=FALSE}
+x <- c(10, 40, 50, 80)
+y <- c(-30, -30, 25, 25)
+
+tx <- c(97500, 102500)
+ty <- c(-3050, 0, 1950)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(d$y) * 1.75
+axis_begin_y <- min(d$y) * 1.75
+
+title <- "Bull Spread"
+
+tick_frame_y <- 
+  data.frame(ticks = c(min(d$y), 0, max(d$y)), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[c(2,3)], zero=0)
+
+total_ticks <- 20
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x= -5, y = axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + text_y +
+
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype=1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 1.5, 
+                   yend = zero + tick_sz * 1.5)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks[1], y = zero, 
+                                   label = format(tx[1], 
+                                   scientific = FALSE)),
+            family = family, vjust = -1.5) +
+  
+  geom_text(data=tick_frame_x, aes(x=ticks[2], y=zero, 
+                                   label=format(tx[2], 
+                                   scientific = FALSE)),
+            family = family, vjust = 2.5) +
+  
+  geom_line(size = 1.3, arrow=arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+ <center>__Рис. 1.8__ Bull Spread заключается в продаже  и покупке опционов колл с одной датой истечения, но разными ценами исполнения.[^8]</center> <br />
+
+[^8]: http://www.option.ru/glossary/strategy/bull-call-spread
+
+```{r echo=FALSE}
+x <- c(10, 40, 50, 80)
+y <- c(30, 30, -25, -25)
+
+tx <- c(92500, 97500)
+ty <- c(-2150, 0, 2850)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(d$y) * 1.75
+axis_begin_y <- min(d$y) * 1.75
+
+title <- "Bear Spread"
+
+tick_frame_y <- 
+  data.frame(ticks = c(min(d$y), 0, max(d$y)), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[c(2,3)], zero=0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x= -5, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x, y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + text_y +
+ 
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype=1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 1.5, 
+                   yend = zero + tick_sz * 1.5)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks[1], y = zero, 
+                                   label = format(tx[1], 
+                                                scientific = FALSE)),
+            family = family, vjust = -1.5) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks[2], y = zero, 
+                                   label = format(tx[2], 
+                                                scientific = FALSE)),
+            family = family, vjust = 2.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.9__ Bear Spread заключается в продаже  и покупке опционов колл с одной датой истечения, но разными ценами исполнения.[^9]</center> <br />
+
+[^9]: http://www.option.ru/glossary/strategy/bear-call-spread
+
+```{r echo=FALSE}
+x <- c(5, 20, 28)
+y <- c(20, -20, 80)
+
+tx <- c(97500)
+ty <- c(0, -31520)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Strap"
+
+tick_frame_y <- 
+  data.frame(ticks = c(0, min(d$y)), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[2], zero=0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x = -2, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x, y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend = tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + text_y +
+  
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype = 1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks != 0), 
+               aes(x = zero, xend = zero - tick_sz * 0.3, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label = format(tx, scientific = FALSE)), 
+            family = family, vjust = -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.10__ Strap заключается в покупке пута и двух опционов колл с одинаковой датой истечения контрактов, цены исполнения могут быть одинаковыми или разными.[^10]</center> <br />
+
+[^10]: http://www.option.ru/glossary/strategy/strap
+
+```{r echo=FALSE}
+x <- c(5, 15, 30)
+y <- c(80, -20, 40)
+
+tx <- c(97500)
+ty <- c(0, -30040)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Strip"
+
+tick_frame_y <- 
+  data.frame(ticks = c(0, min(d$y)), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[2], zero=0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x = -2, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + text_y +
+  
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype = 1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks != 0), 
+               aes(x = zero, xend = zero - tick_sz * 0.4, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label = format(tx, scientific = FALSE)), 
+            family = family, vjust = -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+  <center>__Рис. 1.11__ Strip заключается в покупке колла и двух опционов пут с одинаковой датой истечения контрактов, а цены исполнения могут быть одинаковыми или разными.[^11]</center> <br />
+
+[^11]: http://www.option.ru/glossary/strategy/strip
+
+```{r echo=FALSE}
+x <- c(10, 40, 70)
+y <- c(-60, 30, 30)
+
+tx <- c(102500)
+ty <- c(12980, 0)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Covered Call"
+
+tick_frame_y <- 
+  data.frame(ticks = c(max(d$y), 0), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[2], zero=0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x = -5, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + text_y +
+  
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype=1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 2, yend = zero + tick_sz * 2)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label = format(tx, scientific = FALSE)), 
+            family = family, vjust = -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+ <center>__Рис. 1.12__ Covered Call заключается в продаже определенного количества опционов колл на уже существующий базовой актив (например, фьючерс на индекс РТС или доллар/рубль).[^12]</center> <br />
+
+[^12]: https://optionsworld.ru/pokrytyj-opcion-koll-covered-call/
+
+```{r echo=FALSE}
+x <- c(10, 40, 70)
+y <- c(-30, -30, 60)
+
+tx <- c(92500)
+ty <- c(0, -12590)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Protective Put"
+
+tick_frame_y <- 
+  data.frame(ticks = c(0, min(d$y)), zero=0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[2], zero=0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x = -5, y = axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x,y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + 
+  text_y +
+  
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype=1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 1.8, yend = zero + tick_sz * 1.8)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks != 0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.3) +
+  
+  geom_text(data=tick_frame_x, aes(x = ticks, y = zero, 
+                                   label = format(tx, scientific = FALSE)), 
+            family = family, vjust = -1.5) +
+  
+  geom_line(size = 1.3, arrow = arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+ <center>__Рис. 1.13__ Protective Put схож со стратегией Long Call. Убыток ограничивается уплаченной за опцион премией, в то время как есть потенциал получить неограниченную прибыль.[^13]</center> <br />
+
+[^13]: https://xdirect.ua/study/options/klassicheskie-opcionnye-strategii/protective-callprotective-put
+
+```{r echo=FALSE}
+x <- c(10, 20, 30, 50, 60, 70)
+y <- c(-30, -30, 50, 50, -30, -30)
+
+tx <- c(92500, 95000, 100000, 102500)
+ty <- c(1670, 0, -830)
+
+d <- data.frame(x, y)
+
+axis_end_x <- max(d$x) * 1.25
+axis_end_y <- max(abs(d$y)) * 1.25
+axis_begin_y <- min(d$y) * 1.25
+
+title <- "Iron Condor"
+
+tick_frame_y <- 
+  data.frame(ticks = c(max(d$y), 0, min(d$y)), zero = 0)
+
+tick_frame_x <- 
+  data.frame(ticks = d$x[c(2:5)], zero = 0)
+
+lab_frame <- data.frame(lab_y = seq(axis_begin_y, axis_end_y, 
+                                    length.out = total_ticks),
+                        lab_x = seq(0, axis_end_x, length.out = total_ticks),
+                        zero = 0)
+
+text <- annotate("text", x = axis_end_x - axis_end_x * 0.02, y = -8, 
+                 label = "Stock Price\n at Expiration", size = 5, family = family)
+
+text_y <- annotate("text", x= -5, y=axis_end_y - axis_end_y * 0.02, 
+                   label="Profit\n or Loss", size = 5, family = family)
+
+p <- ggplot(d, aes(x, y)) +
+  geom_segment(mapping=aes(x = 0, xend = 0, 
+                           y = lab_frame$lab_y[1], 
+                           yend =  tail(lab_frame$lab_y, 1)),
+               size = 0.1, arrow = arrow_axis) + text_y +
+
+  geom_segment(mapping=aes(y = 0, yend = 0, 
+                           x = 0, xend = tail(lab_frame$lab_x, 1)),
+               size = 0.1, linetype = 1, arrow = arrow_axis) + text +
+  
+  # x ticks
+  geom_segment(data = tick_frame_x, 
+               aes(x = ticks, xend = ticks, 
+                   y = zero - tick_sz * 1.5, yend = zero + tick_sz * 1.5)) +
+  # y ticks
+  geom_segment(data = subset(tick_frame_y, ticks!=0), 
+               aes(x = zero, xend = zero - tick_sz * 0.8, 
+                   y = ticks, yend = ticks)) +
+  
+  geom_text(data=tick_frame_y, aes(x = zero, y = ticks, 
+                                   label = paste0(m(ty), "$", abs(ty))), 
+            family = family, hjust = 1.5) +
+  
+  geom_text(data = tick_frame_x[c(1, 4), ], aes(x = ticks, y = zero, 
+                                   label = format(tx[c(1, 4)], 
+                                                  scientific = FALSE)),
+            family = family, vjust= -1.5) +
+  
+  geom_text(data=tick_frame_x[c(2, 3), ], aes(x = ticks, y = zero, 
+                                   label=format(tx[c(2, 3)], 
+                                                scientific = FALSE)),
+            family = family, vjust= 2.5) +
+  
+  geom_line(size = 1.3, arrow=arrow_line) +
+  
+  ggtitle(toupper(title)) + theme(plot.title = plot.title)
+
+```
+
+```{r echo=FALSE}
+p
+```
+
+
+ <center>__Рис. 1.14__ Iron Condor состоит из четырех опционов колл или пут с одной датой истечения контрактов, но разными ценами исполнения. Чаще применяется на опционах колл, но возможно и использование путов, а также комбинации коллов и путов.[^14]</center> <br />
+
+[^14]: http://www.option.ru/glossary/articles/lyetim-na-zhyelyeznom-kondorye
+
+### Ссылки на источники
