@@ -1,0 +1,79 @@
+---
+title: "Карта явки избирателей на парламентских выборах в Европе"
+subtitle: "Данные: GPS (Falk, 2018)"
+meta:
+  author: "Попов  М.Н."
+  date: "`r format(Sys.Date(), format = '%d.%m.%Y')`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+# Настройки R и knitr ----------------------------
+# опции R
+options(width = 70, scipen = 16, digits = 3) 
+# опции чанков по умолчанию
+knitr::opts_chunk$set(tidy = FALSE, # сохранять форматирование кода
+               fig.width = 10, # ширина рисунков по умолчанию
+               fig.height = 8, # высота рисунков по умолчанию
+               echo = FALSE, 
+               message = FALSE, 
+               results = FALSE, 
+               warning = FALSE, 
+               cache=TRUE)  
+```
+
+### Загрузка данных
+
+```{r echo = TRUE}
+
+# Необходимые пакеты и их настройки --------------
+library(dplyr)
+library(readxl)
+library(openxlsx)
+library(eurostat)
+library(mapproj)
+library(ggplot2)
+
+theme_set(theme_bw(base_size = 12))
+
+dat = read.xlsx("~/Study/R/map.xlsx")
+
+# Провайдер геоданных EuroStat
+# Загружаем данные по всем регионам Nuts 2013
+maps_europe <- get_eurostat_geospatial(output_class = "df", resolution = "20", 
+                                         nuts_level = "all", year = "2013") %>% 
+  subset(LEVL_CODE > 0) # нас интересуют только уровни Nuts 1-3
+
+maps_europe <- left_join(dat, maps_europe, by = "geo") # объединяем наборы в один датасет
+
+```
+
+### Пример данных в наборе
+
+```{r results = 'asis'}
+knitr::kable(head(maps_europe, 10), format = "html")
+```
+
+<br />
+<br />
+Рисуем тепловую карту (рис. 1.) явки избирателей на европейских парламентских выборах по данным датасета `maps_europe`.
+
+```{r echo = TRUE}
+p <- ggplot(maps_europe, aes(x = long, y = lat, group = group)) +
+  geom_polygon(data = maps_europe, aes(fill = av), color = "slategray", size = .1) +
+  labs(title = "Parliamentary election voter turnout by NUTS 1-3 regions",
+       subtitle = "Data from GPS (Falk, 2018)",
+       fill = "Voter turnount, %") +
+  coord_map(xlim = c(-12, 44), ylim = c(35, 67)) +
+  scale_fill_gradient(low = "white", high = "steelblue3", na.value = "grey90")
+```
+
+### Карта
+
+```{r}
+p
+```
+
+__Рис. 1.__ Статистика посещаемости парламентских выборов в регионах Европы. Источник: GPS (Falk, 2018)
